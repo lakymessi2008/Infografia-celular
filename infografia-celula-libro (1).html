@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La célula: unidad de la vida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2b21;
+    --paper:#f1e9d2;
+    --paper-soft:#e9dfc2;
+    --line: rgba(28,43,33,0.16);
+    --animal:#bd431b;
+    --animal-soft:#f0d9c4;
+    --plant:#2c5233;
+    --plant-soft:#d9e4d1;
+    --gold:#b78a1e;
+    --gold-soft:#f1e2b8;
+    color-scheme: light;
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; }
+
+  body{
+    margin:0;
+    background:#0f1712;
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    line-height:1.5;
+    overflow:hidden;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+
+  h1,h2,h3{ font-family:'Fraunces', serif; margin:0; }
+
+  /* ---------- Book shell ---------- */
+  .book{
+    position:relative;
+    height:100dvh;
+    width:100%;
+    max-width:920px;
+    margin:0 auto;
+    background:var(--paper);
+    overflow:hidden;
+    box-shadow:0 0 60px rgba(0,0,0,0.35);
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size:3px 3px;
+    pointer-events:none;
+  }
+
+  .pages{
+    position:relative;
+    height:100%;
+    width:100%;
+    perspective:1900px;
+  }
+
+  .page{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    overflow-y:auto;
+    opacity:0;
+    pointer-events:none;
+    z-index:1;
+    transform-style:preserve-3d;
+    backface-visibility:hidden;
+    transform:rotateY(0deg);
+    transform-origin:left center;
+    transition: transform .68s cubic-bezier(.47,.03,.32,1), box-shadow .68s ease;
+    background:var(--paper);
+  }
+  .page.visible{ opacity:1; pointer-events:auto; }
+  .page.on-top{ z-index:4; }
+
+  .page-inner{
+    flex:1;
+    padding: 34px 40px 90px;
+    max-width:760px;
+    margin:0 auto;
+    width:100%;
+  }
+
+  /* ---------- Cover ---------- */
+  .cover .page-inner{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding-bottom:110px;
+    max-width:600px;
+  }
+  .cover .field-note{
+    font-size:13px;
+    color:var(--plant);
+    margin-bottom:22px;
+    letter-spacing:0.02em;
+  }
+  .cover .field-note::before{ content:"◆ "; color:var(--gold); }
+  .cover h1{
+    font-size:clamp(34px, 7vw, 54px);
+    font-weight:600;
+    line-height:1.05;
+  }
+  .cover h1 em{ font-style:italic; font-weight:500; color:var(--animal); }
+  .cover p.lede{
+    margin-top:18px;
+    font-size:16px;
+    max-width:40ch;
+    color:rgba(28,43,33,0.8);
+  }
+  .cover .cover-figure{ margin:28px 0; width:100%; max-width:220px; }
+  .cover .cover-figure svg{ width:100%; height:auto; }
+  .cover .start-hint{
+    margin-top:26px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--gold);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .cover .start-hint svg{ width:16px; height:16px; }
+
+  /* ---------- Section labels reused inside pages ---------- */
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    font-weight:600;
+    padding:4px 10px;
+    border-radius:20px;
+    margin-bottom:16px;
+  }
+  .page.animal .eyebrow{ background:var(--animal-soft); color:var(--animal); }
+  .page.plant .eyebrow{ background:var(--plant-soft); color:var(--plant); }
+  .page.compare .eyebrow{ background:var(--gold-soft); color:#7a5c13; }
+
+  .page h2.title{ font-size:clamp(26px,4.2vw,34px); font-weight:600; margin-bottom:8px; }
+  .page p.desc{ font-size:15px; color:rgba(28,43,33,0.78); max-width:56ch; margin-bottom:20px; }
+
+  .content-grid{
+    display:grid;
+    grid-template-columns: 220px 1fr;
+    gap:28px;
+    align-items:start;
+  }
+  .illus-box{ display:flex; justify-content:center; padding-top:4px; }
+  .illus-box svg{ width:100%; max-width:200px; height:auto; }
+
+  ul.traits{ list-style:none; margin:0 0 18px; padding:0; display:grid; gap:7px; }
+  ul.traits li{ font-size:14.5px; padding-left:16px; position:relative; }
+  .page.animal ul.traits li::before{ content:"–"; position:absolute; left:0; color:var(--animal); }
+  .page.plant ul.traits li::before{ content:"–"; position:absolute; left:0; color:var(--plant); }
+
+  .organelles{
+    border-top:1px dashed var(--line);
+    padding-top:16px;
+    margin-top:6px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px 20px;
+  }
+  .organelle b{ display:block; font-size:13.5px; font-weight:700; margin-bottom:2px; }
+  .page.animal .organelle b{ color:var(--animal); }
+  .page.plant .organelle b{ color:var(--plant); }
+  .organelle span{ font-size:13px; color:rgba(28,43,33,0.7); }
+
+  .field-line{
+    margin-top:20px;
+    font-size:13.5px;
+    font-style:italic;
+    color:rgba(28,43,33,0.65);
+    border-left:2px solid var(--gold);
+    padding-left:12px;
+  }
+
+  /* ---------- Compare page ---------- */
+  .compare-table{ border:1px solid var(--line); border-radius:4px; overflow:hidden; margin-bottom:24px; }
+  .compare-row{ display:grid; grid-template-columns:1fr 1fr; }
+  .compare-row + .compare-row{ border-top:1px solid var(--line); }
+  .compare-row.header .cell{ font-family:'Fraunces', serif; font-weight:600; font-size:15px; padding:12px 18px; }
+  .compare-row.header .cell.a{ background:var(--animal); color:var(--paper); }
+  .compare-row.header .cell.p{ background:var(--plant); color:var(--paper); }
+  .compare-row .cell{ padding:11px 18px; font-size:13.5px; }
+  .compare-row .cell.a{ border-right:1px solid var(--line); }
+  .compare-row:not(.header):nth-child(odd) .cell{ background:rgba(255,255,255,0.35); }
+
+  .shared p{ font-size:14px; color:rgba(28,43,33,0.75); margin-bottom:14px; }
+  .pill-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 13px; border-radius:20px;
+    background:var(--gold-soft); border:1px solid rgba(183,138,30,0.4);
+    font-size:12.5px; font-weight:600; color:#7a5c13;
+  }
+  .pill .dot{ width:5px; height:5px; border-radius:50%; background:var(--gold); }
+
+  .closing{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .block{ padding:18px 18px 16px; border-radius:4px; color:var(--paper); }
+  .block.note{ background:var(--ink); }
+  .block.conclusion{ background:var(--gold); color:var(--ink); }
+  .block h3{ font-size:15.5px; font-weight:600; margin-bottom:8px; }
+  .block.note h3{ color:var(--paper-soft); }
+  .block p{ font-size:13px; opacity:0.92; margin:0; }
+
+  /* ---------- Nav bar (fixed within book) ---------- */
+  .navbar{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:64px;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-left:24px;
+    padding-right:24px;
+    background:linear-gradient(0deg, var(--paper) 55%, rgba(241,233,210,0));
+    z-index:5;
+  }
+  .navbtn{
+    display:flex; align-items:center; gap:6px;
+    background:none; border:none; cursor:pointer;
+    font-family:'Work Sans', sans-serif;
+    font-size:13.5px; font-weight:600;
+    color:var(--ink);
+    padding:8px 6px;
+  }
+  .navbtn:disabled{ opacity:0.25; cursor:default; }
+  .navbtn svg{ width:16px; height:16px; }
+
+  .dots{ display:flex; gap:7px; }
+  .dot-btn{
+    width:7px; height:7px; border-radius:50%;
+    background: rgba(28,43,33,0.25);
+    border:none; padding:0; cursor:pointer;
+  }
+  .dot-btn.active{ background:var(--gold); width:18px; border-radius:5px; }
+
+  @media (max-width:640px){
+    .page-inner{ padding:24px 22px 90px; }
+    .content-grid{ grid-template-columns:1fr; }
+    .illus-box{ padding-top:0; }
+    .illus-box svg{ max-width:150px; }
+    .organelles{ grid-template-columns:1fr; }
+    .closing{ grid-template-columns:1fr; }
+    .navbar{ padding-left:18px; padding-right:18px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .page{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="book">
+  <div class="pages" id="pages">
+
+    <!-- COVER -->
+    <section class="page cover visible on-top" data-page="0">
+      <div class="page-inner">
+        <div class="field-note">Biología celular · cuaderno de campo</div>
+        <h1>La célula, la unidad<br>básica de <em>toda vida</em></h1>
+        <div class="cover-figure">
+          <svg viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M40 100 C40 55 75 25 120 28 C165 22 205 55 200 100 C205 145 165 175 118 172 C72 178 38 148 40 100 Z"
+                  fill="var(--animal-soft)" stroke="var(--animal)" stroke-width="2"/>
+            <circle cx="112" cy="95" r="30" fill="#fff" stroke="var(--animal)" stroke-width="1.5"/>
+            <circle cx="118" cy="90" r="6" fill="var(--animal)"/>
+            <ellipse cx="155" cy="130" rx="14" ry="8" fill="var(--plant-soft)" stroke="var(--plant)" stroke-width="1.3" transform="rotate(20 155 130)"/>
+            <ellipse cx="70" cy="60" rx="12" ry="7" fill="var(--plant-soft)" stroke="var(--plant)" stroke-width="1.3" transform="rotate(-15 70 60)"/>
+            <circle cx="65" cy="130" r="4" fill="var(--gold)"/>
+            <circle cx="150" cy="55" r="3.5" fill="var(--gold)"/>
+            <circle cx="175" cy="90" r="3" fill="var(--gold)"/>
+          </svg>
+        </div>
+        <p class="lede">Animal y vegetal parten del mismo origen eucariota, pero cada una se especializó de forma distinta. Pasa la página para ver la comparación completa.</p>
+        <div class="start-hint">
+          Comenzar
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANIMAL -->
+    <section class="page animal" data-page="1">
+      <div class="page-inner">
+        <span class="eyebrow">Eucariota · animal</span>
+        <h2 class="title">Célula animal</h2>
+        <p class="desc">Forma a los animales y al ser humano. Sin pared celular, su membrana flexible le permite adoptar formas variables y moverse con libertad.</p>
+
+        <div class="content-grid">
+          <div class="illus-box">
+            <svg viewBox="0 0 220 190" xmlns="http://www.w3.org/2000/svg">
+              <path d="M35 95 C33 50 68 20 112 24 C158 18 198 52 194 95 C198 140 160 170 110 166 C66 172 37 142 35 95 Z"
+                    fill="var(--animal-soft)" stroke="var(--animal)" stroke-width="2.2"/>
+              <circle cx="102" cy="90" r="34" fill="#fbf7ef" stroke="var(--animal)" stroke-width="1.6"/>
+              <circle cx="110" cy="84" r="7" fill="var(--animal)"/>
+              <ellipse cx="150" cy="120" rx="15" ry="9" fill="#e88a5a" stroke="var(--animal)" stroke-width="1.2" transform="rotate(25 150 120)"/>
+              <ellipse cx="60" cy="55" rx="13" ry="8" fill="#e88a5a" stroke="var(--animal)" stroke-width="1.2" transform="rotate(-20 60 55)"/>
+              <path d="M60 110 q10 -14 24 -8 q10 6 4 16" fill="none" stroke="var(--plant)" stroke-width="1.6"/>
+              <circle cx="150" cy="60" r="4" fill="var(--gold)"/>
+              <circle cx="60" cy="140" r="3.5" fill="var(--gold)"/>
+              <circle cx="170" cy="95" r="3" fill="var(--gold)"/>
+              <circle cx="70" cy="80" r="2.5" fill="var(--gold)"/>
+            </svg>
+          </div>
+          <div>
+            <ul class="traits">
+              <li>No tiene pared celular</li>
+              <li>No tiene cloroplastos</li>
+              <li>Membrana plasmática flexible</li>
+              <li>Núcleo definido</li>
+              <li>Vacuolas pequeñas y numerosas</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="organelles">
+          <div class="organelle"><b>Núcleo</b><span>Contiene el ADN y controla la actividad celular.</span></div>
+          <div class="organelle"><b>Mitocondria</b><span>Produce la energía de la célula.</span></div>
+          <div class="organelle"><b>Ribosomas</b><span>Fabrican proteínas.</span></div>
+          <div class="organelle"><b>Aparato de Golgi</b><span>Modifica y distribuye proteínas y lípidos.</span></div>
+          <div class="organelle"><b>Lisosomas</b><span>Degradan sustancias y desechos.</span></div>
+          <div class="organelle"><b>Retículo endoplásmico</b><span>Produce y transporta proteínas y lípidos.</span></div>
+        </div>
+
+        <p class="field-line">Casi todas las células de tu cuerpo —piel, músculo, sangre— siguen esta misma estructura básica.</p>
+      </div>
+    </section>
+
+    <!-- PLANT -->
+    <section class="page plant" data-page="2">
+      <div class="page-inner">
+        <span class="eyebrow">Eucariota · vegetal</span>
+        <h2 class="title">Célula vegetal</h2>
+        <p class="desc">Forma a las plantas. Su pared celular le da soporte y una forma rígida y regular, y sus cloroplastos le permiten fabricar su propio alimento.</p>
+
+        <div class="content-grid">
+          <div class="illus-box">
+            <svg viewBox="0 0 220 190" xmlns="http://www.w3.org/2000/svg">
+              <rect x="30" y="24" width="160" height="142" rx="14" fill="none" stroke="var(--plant)" stroke-width="2.5"/>
+              <rect x="38" y="32" width="144" height="126" rx="10" fill="var(--plant-soft)" stroke="var(--plant)" stroke-width="1.4"/>
+              <rect x="98" y="55" width="70" height="82" rx="12" fill="#dbe9ee" stroke="#7fa6b5" stroke-width="1.3"/>
+              <circle cx="65" cy="75" r="22" fill="#fbf7ef" stroke="var(--plant)" stroke-width="1.6"/>
+              <circle cx="71" cy="70" r="5" fill="var(--plant)"/>
+              <ellipse cx="60" cy="120" rx="15" ry="8" fill="#4f8a56" stroke="var(--plant)" stroke-width="1.2" transform="rotate(-10 60 120)"/>
+              <ellipse cx="150" cy="45" rx="14" ry="7.5" fill="#4f8a56" stroke="var(--plant)" stroke-width="1.2" transform="rotate(15 150 45)"/>
+              <ellipse cx="150" cy="150" rx="13" ry="7" fill="#4f8a56" stroke="var(--plant)" stroke-width="1.2" transform="rotate(-15 150 150)"/>
+              <ellipse cx="45" cy="145" rx="12" ry="7" fill="#e08a52" stroke="var(--plant)" stroke-width="1" transform="rotate(20 45 145)"/>
+              <circle cx="120" cy="40" r="2.5" fill="var(--gold)"/>
+              <circle cx="60" cy="45" r="2.5" fill="var(--gold)"/>
+            </svg>
+          </div>
+          <div>
+            <ul class="traits">
+              <li>Tiene pared celular</li>
+              <li>Tiene cloroplastos</li>
+              <li>Gran vacuola central</li>
+              <li>Núcleo definido</li>
+              <li>Produce su alimento por fotosíntesis</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="organelles">
+          <div class="organelle"><b>Pared celular</b><span>Da soporte y protección.</span></div>
+          <div class="organelle"><b>Cloroplastos</b><span>Realizan la fotosíntesis.</span></div>
+          <div class="organelle"><b>Vacuola central</b><span>Almacena agua y mantiene la estructura.</span></div>
+          <div class="organelle"><b>Núcleo</b><span>Contiene el ADN y coordina la célula.</span></div>
+          <div class="organelle"><b>Mitocondrias</b><span>Producen energía.</span></div>
+          <div class="organelle"><b>Ribosomas y Golgi</b><span>Fabrican y distribuyen proteínas y lípidos.</span></div>
+        </div>
+
+        <p class="field-line">Gracias a los cloroplastos, las plantas son la base de casi todas las cadenas alimenticias.</p>
+      </div>
+    </section>
+
+    <!-- COMPARE + CLOSE -->
+    <section class="page compare" data-page="3">
+      <div class="page-inner">
+        <span class="eyebrow">Diferencias y semejanzas</span>
+        <h2 class="title">Dos estrategias, un mismo origen</h2>
+        <p class="desc">Animal y vegetal comparten el origen eucariota, pero cada una se especializó de forma distinta.</p>
+
+        <div class="compare-table">
+          <div class="compare-row header">
+            <div class="cell a">Animal</div>
+            <div class="cell p">Vegetal</div>
+          </div>
+          <div class="compare-row"><div class="cell a">No tiene pared celular</div><div class="cell p">Tiene pared celular</div></div>
+          <div class="compare-row"><div class="cell a">No tiene cloroplastos</div><div class="cell p">Tiene cloroplastos</div></div>
+          <div class="compare-row"><div class="cell a">Vacuolas pequeñas y numerosas</div><div class="cell p">Gran vacuola central</div></div>
+          <div class="compare-row"><div class="cell a">Forma más variable</div><div class="cell p">Forma más rígida</div></div>
+          <div class="compare-row"><div class="cell a">Obtiene nutrientes de los alimentos</div><div class="cell p">Produce glucosa mediante fotosíntesis</div></div>
+        </div>
+
+        <div class="shared">
+          <p>Lo que tienen en común: ambas son eucariotas, con un núcleo verdadero rodeado por una membrana propia.</p>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>ADN</span>
+            <span class="pill"><span class="dot"></span>Membrana plasmática</span>
+            <span class="pill"><span class="dot"></span>Citoplasma</span>
+            <span class="pill"><span class="dot"></span>Mitocondrias</span>
+            <span class="pill"><span class="dot"></span>Ribosomas</span>
+            <span class="pill"><span class="dot"></span>Aparato de Golgi</span>
+            <span class="pill"><span class="dot"></span>Retículo endoplásmico</span>
+          </div>
+        </div>
+
+        <div class="closing">
+          <div class="block note">
+            <h3>Dato importante</h3>
+            <p>Aunque son diferentes, ambas son eucariotas: poseen un núcleo verdadero rodeado por una membrana propia.</p>
+          </div>
+          <div class="block conclusion">
+            <h3>Conclusión</h3>
+            <p>La célula es fundamental para la vida. Cada tipo tiene diferencias que le permiten cumplir funciones específicas.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="navbar">
+    <button class="navbtn" id="prevBtn">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Atrás
+    </button>
+    <div class="dots" id="dots"></div>
+    <button class="navbtn" id="nextBtn">
+      Siguiente
+      <svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  const pages = Array.from(document.querySelectorAll('.page'));
+  const dotsWrap = document.getElementById('dots');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  let current = 0;
+  let animating = false;
+
+  pages.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot-btn' + (i === 0 ? ' active' : '');
+    b.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(b);
+  });
+  const dotEls = Array.from(dotsWrap.children);
+
+  function updateNav(){
+    dotEls.forEach((d, i) => d.classList.toggle('active', i === current));
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === pages.length - 1;
+  }
+
+  // Real page-turn: the outgoing page rotates like a sheet of paper
+  // around its left (or right) edge; backface-visibility hides it
+  // past 90°, revealing the incoming page already sitting flat beneath.
+  function goTo(target){
+    target = Math.max(0, Math.min(pages.length - 1, target));
+    if(target === current || animating) return;
+
+    const dir = target > current ? 1 : -1;
+    const outgoing = pages[current];
+    const incoming = pages[target];
+    animating = true;
+
+    incoming.style.transition = 'none';
+    incoming.style.transform = 'rotateY(0deg)';
+    incoming.classList.add('visible');
+    incoming.classList.remove('on-top');
+    incoming.scrollTop = 0;
+    void incoming.offsetWidth; // force reflow so the transition below re-enables cleanly
+    incoming.style.transition = '';
+
+    outgoing.classList.add('on-top');
+    outgoing.style.transformOrigin = dir === 1 ? 'left center' : 'right center';
+    outgoing.style.boxShadow = dir === 1
+      ? '-36px 0 46px -22px rgba(15,23,18,0.5)'
+      : '36px 0 46px -22px rgba(15,23,18,0.5)';
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      outgoing.style.transform = `rotateY(${dir === 1 ? -102 : 102}deg)`;
+    }));
+
+    const finish = () => {
+      outgoing.removeEventListener('transitionend', finish);
+      outgoing.style.transition = 'none';
+      outgoing.classList.remove('visible', 'on-top');
+      outgoing.style.transform = 'rotateY(0deg)';
+      outgoing.style.boxShadow = 'none';
+      void outgoing.offsetWidth;
+      outgoing.style.transition = '';
+      incoming.classList.add('on-top');
+      current = target;
+      animating = false;
+      updateNav();
+    };
+    outgoing.addEventListener('transitionend', finish, {once:true});
+  }
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowRight') goTo(current + 1);
+    if(e.key === 'ArrowLeft') goTo(current - 1);
+  });
+
+  // swipe support for mobile
+  let touchStartX = null;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', (e) => {
+    if(touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(dx) > 60){ dx < 0 ? goTo(current + 1) : goTo(current - 1); }
+    touchStartX = null;
+  }, {passive:true});
+
+  // click cover to advance
+  document.querySelector('.cover').addEventListener('click', () => goTo(1));
+
+  updateNav();
+</script>
+</body>
+</html>
